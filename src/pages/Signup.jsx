@@ -2,8 +2,16 @@ import React, { useState } from "react";
 import axios from 'axios';
 import { url } from '../const';
 import './signUp.css';
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Login } from "./login";
+import { Link } from "react-router-dom";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from 'yup';
+
+const validationSchema = Yup.object().shape({
+  name: Yup.string().required('名前は必須'),
+  email: Yup.string().email('正しくないメールアドレスです。').required('メールアドレスは必須'),
+  password: Yup.string().min(6, '６文字以上でお願いします。').required('パスワードは必須です'),
+  image: Yup.mixed()
+});
 
 export const SignUp = () => {
   const [formData, setFormData] = useState({
@@ -52,30 +60,41 @@ export const SignUp = () => {
 
   return (
     <>
-      < BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<Login />}/>
-        </Routes>
-      </BrowserRouter>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Email</label>
-          <input type="text" name="email" value={formData.email} onChange={handleChange}/>
-        </div>
-        <div>
-          <label>Password</label>
-          <input type="text" name="password" value={formData.password} onChange={handleChange}/>
-        </div>
-        <div>
-          <label>Image</label>
-          <input type="file" onChange={handleImageChange} />
-        </div>
-        <button type="submit">Sign up</button>
-      </form>
+      <Formik
+        initialValues={{
+          name: '',
+          email: '',
+          password: '',
+          image: null
+        }}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+      >
+        {({ setFieldValue }) => (
+          <form onSubmit={handleSubmit}>
+            <div>
+              <label>Name</label>
+              <input type="text" name="name" value={formData.name} onChange={handleChange} />
+            </div>
+            <div>
+              <label>Email</label>
+              <input type="text" name="email" value={formData.email} onChange={handleChange}/>
+            </div>
+            <div>
+              <label>Password</label>
+              <input type="text" name="password" value={formData.password} onChange={handleChange}/>
+            </div>
+            <div>
+              <label>Image</label>
+              <input type="file" onChange={handleImageChange} />
+            </div>
+            <button type="submit">Sign up</button>
+          </form>
+        )}
+        </Formik>
+        <p>
+          アカウントをお持ちですか？ <Link to="/login">ログイン</Link>
+        </p>
     </>
-  )
+  );
 }

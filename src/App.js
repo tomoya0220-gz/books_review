@@ -10,4 +10,4 @@ function App() {
   );
 }
 
-export defaukt App;
+export default App;
