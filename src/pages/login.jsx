@@ -6,21 +6,29 @@ import { Navigate, useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { url } from "../const";
 import { signIn } from '../authSlice';
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import  * as yup from "yup";
+
+const schema = yup.object().shape({
+  email: yup.string().email("有効なメールアドレスを入力してください").required("メールアドレスは必須です"),
+  password: yup.string().min(6, "パスワードは６文字以上でなければなりません").required("パスワードは必須です"),
+});
 
 export const Login = () => {
   const auth = useSelector((state) => state.auth.isSignIn);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState();
   const [, setCookie] = useCookies(['token']);
-  const handleEmailChange = (e) => setEmail(e.target.value);
-  const handlePasswordChange = (e) => setPassword(e.target.value);
-  const onSignIn = (e) => {
-    e.preventDefault();
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: yupResolver(schema)
+  });
+
+  const onSignIn = (data) => {
+    data.preventDefault();
     axios
-      .post(`${url}/signin`, { email: email, password: password })
+      .post(`${url}/signin`, data)
       .then((res) => {
         setCookie('token', res.data.token);
         dispatch(signIn());
@@ -41,22 +49,22 @@ export const Login = () => {
       <main className="signin">
         <h2>ログイン</h2>
         <p>{errorMessage}</p>
-        <form onSubmit={onSignIn}>
+        <form onSubmit={handleSubmit(onSignIn)}>
           <label>メールアドレス</label>
           <br />
           <input 
             type="email"
-            value={email}
-            onChange={handleEmailChange}
+            {...register("email")}
           />
+          {errors.email && <p>{errors.email.message}</p>}
           <br />
           <label>パスワード</label>
           <br />
           <input
             type="password"
-            value={password}
-            onChange={handlePasswordChange}
+            {...register("password")}
           />
+          {errors.password && <p>{errors.password.message}</p>}
           <br />
           <button type="submit">
             ログイン
